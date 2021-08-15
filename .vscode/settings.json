@@ -1,0 +1,7 @@
+{
+  "files.associations": {
+    "packets_settings.h": "c",
+    "unistd.h": "c",
+    "socket.h": "c"
+  }
+}
