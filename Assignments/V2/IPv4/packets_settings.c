@@ -108,11 +108,11 @@ void generate_values(char *ip_buff, __u_int *port) {
 }
 
 // ---- PACKET CREATION ---- //
-void create_packet(char *pkt, struct packet *settings) {
-    struct iphdr iph = generate_ipv4hdr(settings);
-    generate_values(settings->source_ip_address, &settings->source_port);
+void create_packet(char *pkt, struct packet *packet) {
+    struct iphdr iph = generate_ipv4hdr(packet);
+    generate_values(packet->source_ip_address, &packet->source_port);
     memcpy(pkt, &iph, sizeof(struct iphdr));
 
-    (settings->protocol == IPPROTO_UDP) ? create_udp_header(pkt, settings) : create_tcp_header(pkt, settings);
+    (packet->protocol == IPPROTO_UDP) ? create_udp_header(pkt, packet) : create_tcp_header(pkt, packet);
     iph.check = checksum((unsigned short *)pkt, iph.tot_len >> 1);
 }
