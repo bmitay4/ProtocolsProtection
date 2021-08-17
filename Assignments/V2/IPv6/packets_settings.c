@@ -33,17 +33,36 @@ void create_udp_header(char *pkt, struct packet *packet) {
 // ---- PACKET HEADER END ---- //
 
 // ---- GENERATE RANDOM VALUES ---- //
+// char get_num() {
+//     char str[] = {'0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'a', 'b', 'c', 'd', 'e', 'f'};
+//     return str[rand() % 16];
+// }
+// char get_octet() {
+//     char octet[4];
+//     for (size_t i = 0; i < 4; i++)
+//         octet[i] = get_num();
+
+//     return octet;
+// }
+
 void generate_values(char *ip_buff, __u_int *port) {
     // srand(time(NULL));  //Get different random result
-    int round = 5;
+    int round = 32, octet = 0;
     char str[] = {'0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'a', 'b', 'c', 'd', 'e', 'f'};
+    for (size_t i = 0; i < 32; i = i + 4) {
+        if (i == 0)
+            sprintf(ip_buff, "%x%x%x%x", rand() % 16, rand() % 16, rand() % 16, rand() % 16);
+        else
+            sprintf(ip_buff + i, ":%x%x%x%x", rand() % 16, rand() % 16, rand() % 16, rand() % 16);
+    }
 
-    sprintf(ip_buff,
-            "%c%c%c%c::%c%c%c%c::%c%c%c%c::%c%c%c%c::%c%c%c%c::%c%c%c%c::%c%c%c%c::%c%c%c%c",
-            str[rand() % 16], str[rand() % 16], str[rand() % 16], str[rand() % 16], str[rand() % 16], str[rand() % 16], str[rand() % 16], str[rand() % 16],
-            str[rand() % 16], str[rand() % 16], str[rand() % 16], str[rand() % 16], str[rand() % 16], str[rand() % 16], str[rand() % 16], str[rand() % 16],
-            str[rand() % 16], str[rand() % 16], str[rand() % 16], str[rand() % 16], str[rand() % 16], str[rand() % 16], str[rand() % 16], str[rand() % 16],
-            str[rand() % 16], str[rand() % 16], str[rand() % 16], str[rand() % 16], str[rand() % 16], str[rand() % 16], str[rand() % 16], str[rand() % 16]);
+    // sprintf(ip_buff,
+    //         "%c%c%c%c::%c%c%c%c::%c%c%c%c::%c%c%c%c::%c%c%c%c::%c%c%c%c::%c%c%c%c::%c%c%c%c",
+    //         str[rand() % 16], str[rand() % 16], str[rand() % 16], str[rand() % 16], str[rand() % 16], str[rand() % 16], str[rand() % 16], str[rand() % 16],
+    //         str[rand() % 16], str[rand() % 16], str[rand() % 16], str[rand() % 16], str[rand() % 16], str[rand() % 16], str[rand() % 16], str[rand() % 16],
+    //         str[rand() % 16], str[rand() % 16], str[rand() % 16], str[rand() % 16], str[rand() % 16], str[rand() % 16], str[rand() % 16], str[rand() % 16],
+    //         str[rand() % 16], str[rand() % 16], str[rand() % 16], str[rand() % 16], str[rand() % 16], str[rand() % 16], str[rand() % 16], str[rand() % 16]);
+
     *port = (rand() & 0xFFFF);
 
     // printf("%s-%d\n", ip_buff, *port);
